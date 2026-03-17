@@ -132,7 +132,7 @@ def transcribe_local(audio_path: Path, num_speakers: int = None) -> str:
 
     # Step 2: 輪詢狀態（每 15 秒）
     print("[2/5] [本地] 等待轉錄完成（每 15 秒查詢一次）...")
-    for attempt in range(120):  # 最多等 30 分鐘
+    for attempt in range(240):  # 最多等 60 分鐘
         time.sleep(15)
         r = requests.get(f"{base_url}/jobs/{job_id}", headers=headers, timeout=30)
         r.raise_for_status()
