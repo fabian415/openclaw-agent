@@ -73,6 +73,8 @@ PYTHONUNBUFFERED=1 python3 -u <script> <音檔路徑> --mode local --step transc
 - 告知使用者識別結果，再依類型生成筆記
 
 **類型 1 — 商務會議** → 寫入 `xxx_會議記錄.md`（標題：`# xxx 會議記錄`）
+  - `## 基本資訊` 中加入 **與會者名單**：從逐字稿所有出現的說話者標籤（`[時間] 說話者:` 格式）中自動彙整，列出完整名單，例如：
+    `- 與會者：Sephiroth、Louis、TungYi、Morgan、Iris、Alex、Scott、Rafael、Fabian`
   - 標題下方緊接一行註記使用的 AI 模型名稱，例如：
     `> 本份會議記錄由 **Claude Sonnet 4.6**（anthropic/claude-sonnet-4-6）根據本地 Whisper 逐字稿原文生成。`
     （Gemini 模式則標注 Gemini 模型名稱，如：`> 本份會議記錄由 **Gemini 2.5 Flash** 生成。`）
