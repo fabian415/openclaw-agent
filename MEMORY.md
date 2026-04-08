@@ -18,5 +18,6 @@
 3. 詢問使用**本地模式**還是 **Gemini 模式**
 
 模式說明：
-- **本地模式**：會議紀錄摘要放在信件本文，簡短呈現即可
-- **Gemini 模式**：（待確認詳細流程）
+- **本地模式**：轉錄用本地 Whisper 伺服器，筆記由 Claude 生成
+- **Gemini 模式**：轉錄＋筆記皆由 Gemini API 完成（一鍵流程）
+- **Azure OpenAI 模式**：轉錄用 Azure gpt-4o-transcribe-diarize（`--mode openai`），支援說話者辨識，筆記由 Claude 生成（三步驟，同本地模式流程）；音檔限制 25 MB
