@@ -1,12 +1,12 @@
 ---
 name: meeting-proper-noun-extractor
-description: Automatically extract English proper nouns from meeting summary files (.xlsx/.pdf/.docx/.txt/.csv) and save them as a CSV so Whisper corrections and follow-up reviewers can focus on the same vocabulary; trigger this skill whenever you receive a report that lists per-person updates and you need a consolidated list of product/project/brand names (e.g., GenAI Studio, WEDA, Thor, Jetson Thor, OpenClaw, LLMs) without manually curating a dictionary.
+description: Automatically extract the English proper nouns that tend to trip up speech recognition from meeting summary files (.xlsx/.pdf/.docx/.txt/.csv), cap the list at 30 items, and save the result as a CSV so Whisper corrections and follow-up reviewers can focus on the riskiest terms (e.g., GenAI Studio, WEDA, Thor, Jetson Thor, OpenClaw, LLMs) without manually curating a dictionary.
 ---
 
 # Meeting Proper Noun Extractor
 
 ## Overview
-This skill reads structured meeting summaries, action logs, or status reports and automatically pulls out the English proper nouns that appear. Instead of relying on a closed list of terms, the extractor scans for TitleCase spans and acronyms, filters out templated column headings via a stop list, enforces ASCII-only terms, and writes every detected proper noun (with counts and context windows) to a CSV file for easy Whisper correction.
+This skill reads structured meeting summaries, action logs, or status reports and automatically pulls out the English proper nouns that appear. Instead of relying on a closed list of terms, the extractor scans for TitleCase spans and acronyms, filters out templated column headings via a stop list, enforces ASCII-only terms, and writes every detected proper noun (with counts and context windows) to a CSV file for easy Whisper correction. To keep the CSV tightly focused on vocabulary that is easy for speech recognition to mangle, the extractor now limits the file to the first 30 ASR-sensitive terms (acronyms, multi-word names, digits, or punctuation-heavy phrases) discovered in the report.
 
 ## Quick Start
 1. Drop the report you want to process into the workspace (or reference its absolute path). Supported formats: plain text, PDF, Word, Excel, CSV. When you load a spreadsheet, the script skips structural columns such as `Status`, `Task Type`, `Progress`, or `Comment` so only the descriptive text is scanned.

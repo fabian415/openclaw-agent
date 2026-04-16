@@ -36,6 +36,8 @@ load_dotenv(Path.home() / ".openclaw/workspace/.env")
 
 import requests
 import markdown as md_lib
+import json
+from datetime import datetime
 
 
 # ──────────────────────────────────────────────────────────
@@ -52,6 +54,41 @@ def check_env(*keys):
 def _guess_mime(path: Path) -> str:
     mime, _ = mimetypes.guess_type(str(path))
     return mime or "audio/mpeg"
+
+
+def _extract_meeting_date(base_name: str) -> str:
+    m = re.search(r"(\d{4}-\d{2}-\d{2})", base_name)
+    if m:
+        return m.group(1)
+    m = re.search(r"(\d{8})", base_name)
+    if m:
+        raw = m.group(1)
+        return f"{raw[:4]}-{raw[4:6]}-{raw[6:8]}"
+    return datetime.now().strftime("%Y-%m-%d")
+
+
+def _clean_meeting_name(base_name: str, meeting_date: str) -> str:
+    name = base_name
+    name = name.replace(meeting_date, "")
+    name = re.sub(r"^[\W_]+|[\W_]+$", "", name)
+    name = re.sub(r"[_\-]+", "_", name)
+    return name or "未命名會議"
+
+
+def _archive_paths(base_name: str) -> dict:
+    meeting_date = _extract_meeting_date(base_name)
+    meeting_name = _clean_meeting_name(base_name, meeting_date)
+    archive_dir = _workspace / "meeting-archives"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    transcript_txt = archive_dir / f"{meeting_date}_{meeting_name}_逐字稿.txt"
+    notes_txt = archive_dir / f"{meeting_date}_{meeting_name}_會議內容.txt"
+    return {
+        "date": meeting_date,
+        "meeting_name": meeting_name,
+        "archive_dir": archive_dir,
+        "transcript_txt": transcript_txt,
+        "notes_txt": notes_txt,
+    }
 
 
 # ──────────────────────────────────────────────────────────
@@ -564,6 +601,7 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     transcript_path = out_dir / f"{base_name}_逐字稿.md"
     meta_path = out_dir / f"{base_name}_meta.json"
+    archive_info = _archive_paths(base_name)
 
     # ── 讀取或設定預設 meta（供 email step 使用）─────────────
     def load_meta() -> dict:
@@ -592,7 +630,9 @@ def main():
             transcript = transcribe_local(audio_path, args.num_speakers)
 
         transcript_path.write_text(transcript, encoding="utf-8")
+        archive_info["transcript_txt"].write_text(transcript, encoding="utf-8")
         print(f"[✓] 逐字稿已存: {transcript_path}")
+        print(f"[✓] 逐字稿固定歸檔: {archive_info['transcript_txt']}")
 
     # ── Step: classify + generate notes（僅 gemini all 模式）─
     if args.step == "all" and args.mode == "gemini":
@@ -605,13 +645,17 @@ def main():
         notes_path = out_dir / notes_filename
         notes_full = f"# {base_name} {category['label']}\n\n" + notes
         notes_path.write_text(notes_full, encoding="utf-8")
+        archive_info["notes_txt"].write_text(notes_full, encoding="utf-8")
         print(f"[✓] {category['label']}已存: {notes_path}")
+        print(f"[✓] 會議內容固定歸檔: {archive_info['notes_txt']}")
 
     # ── Step: transcribe only（本地／openai 模式）→ 結束，交由 Agent 分類並生成筆記 ──
     if args.step == "transcribe":
         print(f"\n✅ 轉錄完成！請 Agent 讀取逐字稿、分類後生成對應筆記：")
         print(f"   逐字稿路徑：{transcript_path}")
+        print(f"   固定歸檔：{archive_info['transcript_txt']}")
         print(f"   完成後執行寄信：python3 {__file__} {audio_path} --step email")
+        print("   並詢問使用者是否要透過 project-insight-synthesizer 持續更新專案進度文件。")
         return
 
     # ── Step: email ───────────────────────────────────────
@@ -631,12 +675,25 @@ def main():
                 print("請先生成筆記再執行寄信步驟。")
                 sys.exit(1)
         notes_full = notes_path.read_text(encoding="utf-8")
+        archive_info["notes_txt"].write_text(notes_full, encoding="utf-8")
+        print(f"[✓] 會議內容固定歸檔: {archive_info['notes_txt']}")
         print(f"[*] 轉換 {label} 為 HTML ...")
         html_body = minutes_to_html(notes_full, base_name)
         subject = f"【{label}】{base_name}"
         send_email(recipients, subject, html_body, transcript_path)
 
+    summary = {
+        "meeting_date": archive_info["date"],
+        "meeting_name": archive_info["meeting_name"],
+        "transcript_archive": str(archive_info["transcript_txt"]),
+        "notes_archive": str(archive_info["notes_txt"]),
+        "ask_project_insight": True,
+    }
     print(f"\n✅ 完成！輸出位於: {out_dir}")
+    print(f"✅ 固定歸檔位置: {archive_info['archive_dir']}")
+    print("✅ 後續請詢問使用者：是否要透過 project-insight-synthesizer 持續更新專案進度文件？")
+    print("✅ 注意：必須等使用者明確回覆同意後，才可繼續執行；不可自動串接。")
+    print("[SUMMARY]" + json.dumps(summary, ensure_ascii=False))
 
 
 if __name__ == "__main__":

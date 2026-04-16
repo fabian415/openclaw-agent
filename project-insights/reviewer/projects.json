@@ -1,0 +1,54 @@
+[
+  {
+    "id": "index",
+    "title": "Project Insights Index",
+    "file": "../index.md",
+    "stage": "總覽",
+    "readiness": "Index",
+    "updated": "2026-04-15",
+    "archives": [
+      {
+        "date": "2026-03-20",
+        "transcript": "../meeting-archives/2026-03-20_BiWeeklyReport_逐字稿.txt",
+        "notes": "../meeting-archives/2026-03-20_BiWeeklyReport_會議內容.txt"
+      },
+      {
+        "date": "2026-04-10",
+        "transcript": "../meeting-archives/2026-04-10_BiWeeklyReport_逐字稿.txt",
+        "notes": "../meeting-archives/2026-04-10_BiWeeklyReport_會議內容.txt"
+      }
+    ]
+  },
+  {
+    "id": "roboticsuite",
+    "title": "RoboticSuite",
+    "file": "../roboticsuite.md",
+    "stage": "第一版 released 後整合中",
+    "readiness": "Internal Only（接近 Soft Launch Ready）",
+    "updated": "2026-04-10"
+  },
+  {
+    "id": "deviceon",
+    "title": "DeviceOn",
+    "file": "../deviceon.md",
+    "stage": "功能擴充與智慧化驗證中",
+    "readiness": "Soft Launch Ready",
+    "updated": "2026-04-10"
+  },
+  {
+    "id": "lobster-rag-assistant",
+    "title": "龍蝦（RAG 個人記憶助手）",
+    "file": "../lobster-rag-assistant.md",
+    "stage": "助理化方向重定義中",
+    "readiness": "Internal Only",
+    "updated": "2026-04-10"
+  },
+  {
+    "id": "openclaw-meeting-skill",
+    "title": "OpenClaw 會議記錄 Skill",
+    "file": "../openclaw-meeting-skill.md",
+    "stage": "可用原型，開始產品化",
+    "readiness": "Soft Launch Ready",
+    "updated": "2026-04-10"
+  }
+]

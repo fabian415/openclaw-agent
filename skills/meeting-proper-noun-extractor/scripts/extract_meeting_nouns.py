@@ -14,6 +14,9 @@ DEFAULT_MAX_CONTEXTS = 3
 PROPER_NOUN_PATTERN = re.compile(r"\b(?:[A-Z][\w&/\.\-]*)(?:\s+(?:[A-Z][\w&/\.\-]*))*\b")
 ASCII_TERM_PATTERN = re.compile(r"^[A-Za-z0-9&/\.\- ]+$")
 STOP_TERMS_FILE = Path(__file__).resolve().parents[1] / "references" / "stop-terms.txt"
+MAX_OUTPUT_TERMS = 30
+
+HARD_AUDIO_PATTERN = re.compile(r"[&/\\\-]")
 
 
 def main() -> None:
@@ -50,17 +53,20 @@ def main() -> None:
     stop_words = load_stop_terms()
     manual_terms = load_manual_terms(args.terms_file)
     counter, contexts = find_terms(text, manual_terms, stop_words)
+    counter, contexts = select_asr_sensitive_terms(counter, contexts, MAX_OUTPUT_TERMS)
 
     timestamp = Path(input_path).stem
     output_path = (args.output or input_path.with_name(f"{timestamp}-proper-nouns.csv")).resolve()
     write_csv(output_path, counter, contexts, min_contexts=1, max_contexts=args.contexts)
 
     if counter:
-        print(f"Extracted {len(counter)} term(s); saved CSV to {output_path}")
+        print(
+            f"Extracted {len(counter)} ASR-sensitive term(s) (capped at {MAX_OUTPUT_TERMS}); saved CSV to {output_path}"
+        )
         for term, count in counter.most_common():
             print(f"  {term}: {count} occurrence(s)")
     else:
-        print("No English proper nouns were detected; the CSV still contains the header row.")
+        print("No ASR-sensitive English proper nouns were detected; the CSV still contains the header row.")
 
 
 def load_text(path: Path) -> str:
@@ -201,6 +207,35 @@ def find_terms(text: str, manual_terms: list[str], stop_words: set[str]) -> tupl
             seen_spans.add(span)
 
     return counter, contexts
+
+
+def is_asr_sensitive_term(term: str) -> bool:
+    if any(char.isdigit() for char in term):
+        return True
+    if HARD_AUDIO_PATTERN.search(term):
+        return True
+    if " " in term:
+        return True
+    if term.isupper():
+        return True
+    if any(c.isupper() for c in term[1:]):
+        return True
+    return False
+
+
+def select_asr_sensitive_terms(
+    counter: Counter[str], contexts: dict[str, list[str]], max_terms: int
+) -> tuple[Counter[str], dict[str, list[str]]]:
+    filtered = Counter()
+    filtered_contexts: dict[str, list[str]] = {}
+    for term, count in counter.most_common():
+        if not is_asr_sensitive_term(term):
+            continue
+        filtered[term] = count
+        filtered_contexts[term] = contexts.get(term, [])
+        if len(filtered) >= max_terms:
+            break
+    return filtered, filtered_contexts
 
 
 def normalize_term(term: str) -> str:

@@ -4,6 +4,9 @@ The extractor derives English proper nouns straight from the text instead of rel
 
 When processing spreadsheets, the extractor also skips columns whose headers are purely structural (``Status``, ``Task Type``, ``Progress``, ``Comment``, ``Start Date``, ``End Date``, ``Member``) so that only descriptive text is scanned. If your reports use different headers, add them to the column blacklist inside `scripts/extract_meeting_nouns.py` before rerunning so the noise stays low.
 
+## ASR-sensitive filter
+After collecting every TitleCase span and acronym, the extractor now narrows the list to the terms that are easiest for speech recognition to mishear (multi-word names, acronyms, CamelCase blends, digits, or punctuation-heavy tokens) and stops once it has gathered the top 30 matches by frequency. This keeps the CSV short, manageable, and full of the vocabulary Whisper is most likely to misinterpret.
+
 ## Stop list
 `references/stop-terms.txt` contains one term per line and is consulted case-insensitively. Add any new capitalized label, status word, or repeated system term that you do not want the extractor to treat as a proper noun (for example, `Skill`, `Request`, `CPU`, `Version`, `Working Assistant`, `Containerized`).
 

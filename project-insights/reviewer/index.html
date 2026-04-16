@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Insights Reviewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel-2: #1a2347;
+      --text: #eaf0ff;
+      --muted: #9fb0d9;
+      --accent: #7cc4ff;
+      --border: #2a3768;
+      --chip: #22315f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Noto Sans TC", system-ui, sans-serif;
+      background: linear-gradient(180deg, #0a1020 0%, #11172b 100%);
+      color: var(--text);
+    }
+    .app {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: rgba(12, 17, 34, 0.95);
+      padding: 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+    }
+    .brand h1 { font-size: 20px; margin: 0 0 8px; }
+    .brand p { color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
+    .search {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--panel); color: var(--text);
+      margin-bottom: 16px;
+    }
+    .project-list { display: flex; flex-direction: column; gap: 12px; }
+    .project-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .project-card:hover, .project-card.active {
+      background: var(--panel-2);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .project-card h3 { margin: 0 0 8px; font-size: 16px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chip {
+      font-size: 12px; color: var(--muted); padding: 5px 8px;
+      background: var(--chip); border-radius: 999px; border: 1px solid var(--border);
+    }
+    .content {
+      padding: 28px;
+      min-width: 0;
+    }
+    .toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 16px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .toolbar .info { color: var(--muted); }
+    .viewer {
+      background: rgba(18, 25, 51, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .viewer h1, .viewer h2, .viewer h3 { line-height: 1.3; }
+    .viewer h1 { font-size: 34px; margin-top: 0; }
+    .viewer h2 { margin-top: 34px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .viewer p, .viewer li { color: #dbe6ff; line-height: 1.8; }
+    .viewer code {
+      background: #0d1530; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    .viewer table {
+      width: 100%; border-collapse: collapse; overflow: hidden; display: block; overflow-x: auto;
+    }
+    .viewer th, .viewer td {
+      border: 1px solid var(--border); padding: 10px 12px; text-align: left;
+    }
+    .viewer blockquote {
+      border-left: 4px solid var(--accent); margin: 16px 0; padding: 4px 16px; color: var(--muted);
+      background: rgba(124, 196, 255, 0.06); border-radius: 8px;
+    }
+    .empty { color: var(--muted); padding: 16px 0; }
+    a { color: var(--accent); }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+      .content { padding: 16px; }
+      .viewer { padding: 18px; }
+      .viewer h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>Project Insights Reviewer</h1>
+        <p>預覽各專案 Markdown 知識庫，快速查看目前進度、成熟度、技術亮點、重大突破與更新內容。</p>
+      </div>
+      <input id="search" class="search" type="search" placeholder="搜尋專案名稱或狀態…" />
+      <div id="project-list" class="project-list"></div>
+    </aside>
+    <main class="content">
+      <div class="toolbar">
+        <div>
+          <div style="font-size: 22px; font-weight: 700;">Knowledge Base Preview</div>
+          <div id="current-meta" class="info">載入中…</div>
+        </div>
+        <div class="info">路徑：<code>/project-insights/</code></div>
+      </div>
+      <article id="viewer" class="viewer"><div class="empty">載入中…</div></article>
+      <section id="archive-links" class="viewer" style="margin-top:16px; display:none;"></section>
+    </main>
+  </div>
+
+  <script>
+    const listEl = document.getElementById('project-list');
+    const viewerEl = document.getElementById('viewer');
+    const searchEl = document.getElementById('search');
+    const metaEl = document.getElementById('current-meta');
+    const archiveEl = document.getElementById('archive-links');
+    let projects = [];
+    let filtered = [];
+    let currentId = null;
+
+    async function loadProjects() {
+      const res = await fetch('./projects.json');
+      projects = await res.json();
+      filtered = projects;
+      renderList();
+      const initial = location.hash?.replace('#', '') || projects[0]?.id;
+      if (initial) loadProject(initial);
+    }
+
+    function renderList() {
+      listEl.innerHTML = '';
+      if (!filtered.length) {
+        listEl.innerHTML = '<div class="empty">找不到符合的專案。</div>';
+        return;
+      }
+      for (const project of filtered) {
+        const card = document.createElement('div');
+        card.className = 'project-card' + (project.id === currentId ? ' active' : '');
+        card.innerHTML = `
+          <h3>${project.title}</h3>
+          <div style="color: var(--muted); font-size: 13px;">${project.stage}</div>
+          <div class="meta">
+            <span class="chip">${project.readiness}</span>
+            <span class="chip">更新：${project.updated}</span>
+          </div>
+        `;
+        card.onclick = () => loadProject(project.id);
+        listEl.appendChild(card);
+      }
+    }
+
+    async function loadProject(id) {
+      const project = projects.find(p => p.id === id);
+      if (!project) return;
+      currentId = id;
+      location.hash = id;
+      renderList();
+      metaEl.textContent = `${project.title}｜${project.stage}｜${project.readiness}｜最後更新 ${project.updated}`;
+      if (project.archives?.length) {
+        archiveEl.style.display = 'block';
+        archiveEl.innerHTML = `
+          <details style="border:1px solid var(--border);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,0.02)">
+            <summary style="cursor:pointer;font-size:18px;font-weight:700;outline:none;">固定歸檔連結</summary>
+            <div class="empty" style="padding-top:12px">可直接打開原始逐字稿與會議內容檔案，用於追溯與外部知識工具餵料。</div>
+            ${project.archives.map(item => `
+              <div style="margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,0.02)">
+                <div style="font-weight:700;margin-bottom:8px;">${item.date}</div>
+                <div><a href="${item.transcript}" target="_blank">逐字稿</a></div>
+                <div><a href="${item.notes}" target="_blank">會議內容</a></div>
+              </div>
+            `).join('')}
+          </details>
+        `;
+      } else {
+        archiveEl.style.display = 'none';
+        archiveEl.innerHTML = '';
+      }
+      viewerEl.innerHTML = '<div class="empty">載入內容中…</div>';
+      const res = await fetch(project.file);
+      const md = await res.text();
+      viewerEl.innerHTML = marked.parse(md);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    searchEl.addEventListener('input', () => {
+      const q = searchEl.value.trim().toLowerCase();
+      filtered = projects.filter(p =>
+        `${p.title} ${p.stage} ${p.readiness}`.toLowerCase().includes(q)
+      );
+      renderList();
+    });
+
+    loadProjects().catch(err => {
+      viewerEl.innerHTML = `<div class="empty">載入失敗：${err.message}</div>`;
+    });
+  </script>
+</body>
+</html>

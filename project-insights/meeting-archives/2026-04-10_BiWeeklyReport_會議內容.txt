@@ -1,0 +1,48 @@
+📋 2026-04-10_DeviceOn_BiWeeklyMeeting_2026-04-10T05-27-21 — 會議記錄
+2026-04-10_DeviceOn_BiWeeklyMeeting_2026-04-10T05-27-21 會議記錄
+本份會議記錄由 Jarvis 根據逐字稿原文整理生成。 原始逐字稿來自本地 Whisper 伺服器轉錄，內容可能仍有部分辨識誤差，建議寄出前依需要複核專有名詞。
+會議重點摘要
+•	本次會議聚焦於 【Robotics Suite Simulation】、【GenAI Studio】、【WEDA】 與相關產品/平台功能進度更新。
+•	團隊確認目前 【Robotic Suite Simulation】 第一版已發布，並持續調整產品論述，使高算力設備可同時支援 【Simulation】、【Training】、【Inference】 與資料蒐集流程。
+•	會中多次討論如何將訓練流程、checkpoint / step 機制、【VRAM offload】、【KV Cache】、【TensorRT】、【OpenVINO】 等能力包裝成清楚的產品特色，而不只是技術實作。
+•	【Iris】 說明多項前後端改善，包括設備/攝影機重新連線、GPU 狀態顯示、checkpoint 選擇、資料儲存位置修正、錄製與 Inference 畫面優化，以及將 【Robotic Suite Server】 擴展為可操作 【Recording】、【Inference】 的完整版本。
+•	【TungYi】 報告手臂環境、模擬器、鏡頭與資料集調校進度，也提到多 GPU 訓練、訓練完成後 process 未釋放等問題與改善方向。
+•	【Fabian】 展示以 【OpenClaw】、【WhisperX】、專有名詞萃取與語者對齊為核心的會議記錄工作流，說明目前可自動轉錄、整理、寄送會議紀錄，但仍受限於轉錄速度、專業術語與正確性校對流程。
+•	【Louis】 強調此類會議助理/轉錄能力應從「會議記錄工具」進一步延伸到產品化與 PM 助理角色，未來可沉澱跨次會議脈絡、協助產生產品頁、PPT、特色整理與 Next Action。
+•	會中也談到多個周邊議題，包括 【GPT-OSS】 支援、【LoRA】 / convert 流程、【Qwen 3.5】 / 【Gemma】 等模型取捨、【WEDA】 API 與 UI 調整、裝機與授權流程、Device Agent ID / MAC 問題，以及中國區下載/統計方案。
+決議事項清單
+•	決議內容：現階段先以 【Robotic Suite Simulation】 為明確優先項目持續推進。
+•	負責人：Alex
+•	期限：待確認
+•	決議內容：產品對外論述需從單純技術功能，轉成客戶可理解的產品特色與價值，例如 checkpoint / 分段訓練、低規格分批訓練、【VRAM offload】 等賣點。
+•	負責人：Sephiroth、Louis
+•	期限：待確認
+•	決議內容：會議記錄工作流後續應加入人工校對/ready-to-send 機制，而不是完全自動直接寄出。
+•	負責人：Fabian、Iris
+•	期限：待確認
+•	決議內容：會議助理未來方向不只停留在紀錄整理，還要往 PM 助理、產品特色抽取、產品頁/PPT 輔助產出方向規劃。
+•	負責人：Fabian、Louis
+•	期限：待確認
+待辦追蹤事項
+追蹤事項	負責人	期限
+與 【Morgan】 討論 【Documentation】、環境整理與 【Official Site】 規劃	Sephiroth	下週
+推進新的 【Inference offload】 / Python 機制開發與驗證	Sephiroth	待確認
+針對 【WEDA】 新版本 API / UI / deployment 流程持續驗證與調整	Sephiroth、WunHuei	待確認
+更新手臂、模擬器、鏡頭、桌墊與 dataset 調校，找出中距離夾取 offset 問題原因	TungYi	待確認
+修正訓練流程僅使用 1 顆 GPU、以及 training 完成後 process / bridge 未釋放問題	TungYi	待確認
+完成設備重新連線、GPU 狀態顯示、checkpoint 選擇、Dataset 管理與 Recording / Inference 引導畫面等功能整合	Iris	待確認
+釐清並說明 ROS / ROS2 與外部手臂設備介接方式，建立可對客戶說明的格式與規範	Iris、Louis	待確認
+評估 【GPT-OSS】、【OpenVINO】、【TensorRT】、【Llama.cpp】 convert/support 路線與優先度	TungYi、Scott	待確認
+持續優化本地會議記錄工作流，包括語者辨識、專有名詞、速度、內容缺漏與準確度	Fabian	待確認
+為會議記錄產品化流程建立 initial setup 指引，包括個人語音樣本、專業術語與最佳模型選型	Fabian	待確認
+在 email 發送前加入人工複核步驟（ready-to-send）	Fabian	待確認
+針對 【WEDA 1.0】 與 UI 優化持續追蹤	WunHuei	待確認
+處理 Device Agent ID 取 MAC 導致 【Jetson】 虛擬卡誤判問題	Scott	待確認
+釐清中國區下載、統計與安裝包相關方案（含百度統計/Azure Functions Relay 等）	Fabian	待確認
+就 【Robotics】 市場與公司產品策略，整理客戶導向的產品定位與對接情境	Louis	待確認
+需要上報的關鍵資訊
+•	【Robotic Suite Simulation】 與相關 【Robotics Suite】 能力，已被對齊到公司更大層級的機器人/【AMR】/產品策略脈絡中，不再只是單點 POC 或 demo。
+•	若要把產品拉到更高層級推廣，除了技術功能外，還需要補齊對客戶的產品敘事、標準介接方式、安裝與 initial setup 流程。
+•	會議記錄工作流已具備雛形，但實際對外/正式使用前，仍需處理正確性、語者對齊、術語品質、耗時與人工校對節點。
+•	【GPT-OSS】 與相關模型支援仍存在成本、硬體、convert 流程與產品優先度的取捨，不宜只因模型熱門就全部跟進，需回到產品定位來決定。
+本會議記錄由 Jarvis 自動生成

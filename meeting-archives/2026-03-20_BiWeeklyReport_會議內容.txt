@@ -1,0 +1,199 @@
+📋 語音 260320_100019 — 會議記錄
+會議記錄
+本份會議記錄由 Claude Sonnet 4.6（anthropic/claude-sonnet-4-6）根據逐字稿原文生成。
+會議名稱
+Advantech 內部週會 — RoboticSuite / DeviceOn / AI 助手進展更新
+時間
+•	開始時間：2026 年 03 月 20 日 10:00（GMT+8，台北）
+•	結束時間：2026 年 03 月 20 日 ~11:38（GMT+8，台北）
+與會者
+姓名	角色／職責說明
+Sephiroth	會議主持人，RoboticSuite 技術負責人
+Louis	資深主管，產品策略與業務方向
+TungYi	Simulation / Sim-to-Real 研究
+Morgan	Robotics 實體工具、硬體整合
+Alex	軟體整合、License 機制
+Iris	RoboticSuite UI/UX 開發
+Scott	DeviceOn AI 智慧助手、API 技能開發
+Rafael	龍蝦（RAG 記憶助手）開發、DeviceOn 歐洲客戶
+Fabian	OpenClaw 會議記錄 Skill、QA 自動化測試
+________________________________________
+詳細討論內容
+1. RoboticSuite 品牌命名定位
+•	與 Louis 討論後確認定位：在 Robotic Branding 下，Server 端命名為 Simulation，Edge 端命名為 Inference
+•	後續需由 PM（Judy 負責）彙整相關 PM 發邀請函，一起召開 meeting 收集 feedback
+•	主要 PM 在 Caddy 那邊，由 Judy 負責引入
+2. GenAI Studio 更新
+•	上週五有新版本，整合新的 205 WitaWay
+•	同步 release 303 版本（for inference）
+•	Inference 整合較複雜，考量與後述 UniAI 一起評估，目標讓框架結構一致
+3. UniAI License 討論
+•	UniAI 仍在洽談 License
+•	若 RoboticSuite 內含 UniAI 對外銷售，需確認 License 疊加方式
+•	決議：等 UniAI License 確認後再討論整合方案
+4. WEDA 平台更新
+•	上次開會後已討論並回應部分 issue
+•	目前等待 WEDA 1.0
+•	優先功能預計四月底完成
+5. Sim-to-Real 資料管線問題（TungYi 報告）
+5.1 HDF5 → Dataset 轉換落差分析
+•	使用 Simulator 輸出 HDF5 轉 Dataset 後，模型推論結果異常（爪子無法精準抓取目標）
+•	改用 Physical AI Server 直接錄製 Dataset，結果正常 → 確認問題出在轉換過程
+•	調查方向一：MP4 Codec 差異（Physical AI Server 使用 H.264，HDF 轉出為 AC05）
+•	已統一 Codec 後重測，問題依然存在 → 排除 Codec 因素
+•	調查方向二：lerobot 版本差異（Physical AI Server 使用 0.2.0/0.2.2，自行轉換使用 0.3.0）
+•	計畫統一 Library 版本再測試
+•	目前可用方案：Simulator 跑模擬，錄製直接使用 Physical AI Server Tool
+5.2 大量資料生成策略
+•	若要讓 Simulator 生成大量訓練資料，仍需打通 HDF5 轉換流程
+•	替代方案：Simulator 持續模擬，實體環境同步錄製
+•	與 Cosmo（NVIDIA）無直接關聯，主要使用 MiniCore 或 SkillGen
+5.3 GR00T / iSEC Sim 相關
+•	iSEC Lab / iSEC Sim 已有 SO101 project 且調整過，但目前 Robotic Suite 不支援 GR050 手臂
+•	Morgan 確認：real-to-real 目前 OK
+6. Robotics 實體工具改進（Morgan 報告）
+6.1 Leader/Follower 手臂自動識別
+•	原流程需使用者手動辨別 Leader / Follower
+•	新方法：透過馬達出廠設定的 ID 範圍自動辨別，已寫成文件，可整合至 Tool UI
+•	User 不需進後台手動辨認
+6.2 Robotic Physical Tool 跑在 Jetson 的可行性
+•	原生 R-File（JetPack 6.x）不相容，舊版 JSON-7 GPU 版本較新，無法直接使用
+•	已修改 Base R-File，調整相關套件後可行
+•	EPC 7300 可安裝原生版本，ZenPack GPU 版問題待確認
+6.3 OpenVINO / CUDA / CPU 推論框架討論
+•	目前 Inference UI 支援 CPU 與 CUDA 選項，計畫加入 OpenVINO
+•	Louis 釐清命名：CPU（實體處理器）vs CUDA（NVIDIA）vs OpenVINO（Intel 加速框架）
+•	建議 Auto-Detect 可用裝置，優先順序：CUDA > OpenVINO > CPU
+•	選項命名需更清楚，避免混淆
+6.4 VLA 評估
+•	初步測試失敗，仍在確認原因
+7. RoboticSuite UI/UX 改進（Iris 報告）
+7.1 功能改進項目
+•	新增「刪除 Dataset 中特定筆數」功能
+•	Camera 啟用後，Image Topic 數量自動跟隨調整（不再固定）
+•	Inference 可選擇 CPU / CUDA，未來加入 OpenVINO 選項
+•	自動判別 Leader/Follower 手臂（整合 Morgan 方案）
+•	新增判斷「是否有手臂或相機」的功能，避免資料撈取錯誤
+•	Server 端與 Edge 端 UI 皆顯示分享/匯入功能，並以 Default 選項區分
+7.2 UX 流程改善（根據文惠使用回饋）
+•	加入導覽功能，引導使用者走完 Recording → Training → Inference 完整流程
+•	錄製結束後顯示明顯提示，並提供檔案路徑連結
+•	Data Tool 頁面重構：分為「資料集管理與分享」及「Model 管理」兩大功能區
+•	Model 選擇介面改善：只顯示使用者需要看懂的資訊，隱藏無關檔案
+•	Inference Control Bar 簡化（錄製與推論共用 Control Bar 問題將拆開）
+7.3 訓練流程驗證
+•	錄製 50 筆後進行 Inference，可成功抓取 Cube 並放入盒子 ✅
+7.4 單機部署討論
+•	目前 Server（Training）與 Edge（Inference）拆成兩台，需手動代碼傳遞
+•	討論改為自動傳輸：設定好 Server IP 後自動 push/pull，免手動切換 UI
+•	安裝包設計：同一包，依選項（Server / Edge / 單機）決定啟用功能
+•	結論：Server 應包含 Inference 功能，目前先隱藏，未來開放
+8. 龍蝦（RAG 個人記憶助手）開發進展（Rafael 報告）
+8.1 架構概覽
+•	目標：個人文件記憶助手，讀取檔案 → 存入資料庫 → 查詢時從 DB 撈取相關資料回答
+•	優點：減少 Context Window 使用量，適合大量文件情境
+•	UI：電腦端或 Telegram 皆可接入
+8.2 開發進度
+•	步驟 1（讀檔存 DB）：尚在微調，偶爾仍需多次互動才能完成存檔
+•	步驟 2（查詢回答）：已通，從 DB 撈取對應資料後回覆
+•	步驟 3（自動監視目錄）：已通，可自動掃描新增檔案並更新 DB
+8.3 技術細節
+•	對話記憶改為 recall 關鍵字查詢方式（非直接帶入全部對話 context）
+•	本地模型 Context Window 不足問題 → 改用雲端模型（暫用）
+•	Session 重啟後記憶遺失問題待解決（需將 Memory 移植到新 session）
+8.4 應用方向討論
+•	可擴充支援 PDF、圖片（OCR）、Word 文件、Forum / Wiki 資料
+•	整合 DeviceOn 日誌（RabbitMQ 異常、PostgreSQL、MongoDB log）
+•	個人助手優勢：有記憶、越用越聰明、可自動化 routine 工作
+9. DeviceOn AI 智慧監控助手（Scott 報告）
+9.1 功能規劃
+•	定期從 Server 取得數據 → AI 分析 → 產出日報表 / 週報表
+•	涵蓋項目：
+•	設備離線/連線狀況
+•	數位憑證到期預警
+•	CPU / Memory 使用異常
+•	Event Log 分析（多次登入失敗警告）
+•	Storage 使用趨勢預測（HDD 不足預警）
+•	CVE 漏洞比對（已安裝軟體版本 vs 已知 CVE）
+9.2 AI 模型
+•	目前使用 GPT-4o mini
+9.3 CVE 漏洞比對討論
+•	DeviceOn 可取得 Device 已安裝程式清單與版本
+•	與網路上已知 CVE 資料比對，列出需升級設備清單
+•	本次 BSP Build 已有 CPE，可用於 compare
+•	建議整合 Rafael 的 Memory DB 做 Solution 查詢
+9.4 助手核心價值（Louis 補充）
+•	要有「人性化 Smart」感受
+•	有記憶：知道 Manager concern 的重點，定期報告只需關注關鍵三點
+•	越用越貼近使用習慣
+10. OpenClaw 會議記錄 Skill（Fabian 報告）
+10.1 本地 WhisperX 方案
+•	使用 Claude Sonnet 4.6 撰寫 Skill，約 2 小時完成第一版
+•	整合 WhisperX（說話者分離），部署至 GPU 伺服器（API 方式）
+•	使用者給錄音檔 → 選擇本地或雲端模式 → 3 分鐘完成轉錄與分析
+•	輸出：逐字稿 + 重點摘要 + 代辦事項 + 角色分工
+10.2 VEXA 線上會議方案
+•	VEXA 可加入 Teams Bot，直接抓取 Speaker Metadata，自動產生逐字稿
+•	評估 VEXA 是否可本地部署（open source，可替換 WhisperX 模型）
+10.3 實體會議整合
+•	建議：手機錄音 APP 錄完直接發 Telegram → 龍蝦自動處理
+•	實體會議比線上會議更需要此功能
+11. QA Over-Current 自動化測試（Fabian 報告）
+•	背景：IoT 那邊向 NVIDIA 回報 Over-current issue，確認是否在 MIC 板子上重現
+•	發現 Memory Leak 問題（系統有 Memory 持續上升後 Crash 現象）
+•	改善方向：停用並重啟 VSS 可緩解 Memory 問題，已回報請 HW 包含依據
+•	因需 24～48 小時持續測試電源，為避免 Crash 影響測試，改為每 2 小時重啟一次
+•	目前電流測試無異常（系統 Over-current 水位為 Notify 機制，非實際超標）
+•	System Over-current 為硬體設計閾值通知，不代表真正超過最大電流
+12. DeviceOn 版本更新與客戶進度（Scott / Rafael 報告）
+12.1 DeviceOn 2.0.33 版本
+•	更新 Vigil VNC 版本（1.0 → 1.6.4）
+•	新增 Security 相關 page
+•	CPU Code 使用量監控功能（基本功能驗證可行，待整合）
+12.2 版本 Roadmap
+•	1.0 → 3 月底
+•	1.16 → 6 月底
+•	1.2 → 9 月底（一季一版）
+12.3 歐洲客戶進度
+•	Ponseca（羅馬尼亞）：DeviceOn 功能驗證滿意，正移至 Production Environment 再驗，通過後準備下單
+•	Swisscon（ADEo 開發新客戶）：需要 AGI documentation；特殊需求為在 Windows + WSL 環境中控制 DeviceOn（詳細需求待確認）
+12.4 ARK 353 HPAC 問題
+•	AE 回報 DeviceOn HPAC Function 異常，查明原因為 EC 進版後未同步更新 DeviceOn Server
+•	解法：更新至新版 DeviceOn Server 即可
+•	已提供 EC 版本查詢工具給 AE
+13. BSP / Azure Token 問題（Fabian 報告）
+•	美國客戶在 Bang 平台 2.4.0/4.3 版發現系統相關 Token 缺失問題
+•	解法：偵測到缺失時自動補裝
+•	原本 Token 類型寫死，部分平台使用 Azure Token，Dylan 建議將 configuration 移到 pipeline 中彈性設定
+________________________________________
+決議事項
+1.	RoboticSuite 命名確認：Server = Simulation、Edge = Inference
+2.	UniAI License 待確認後再討論整合，不先納入規劃
+3.	WEDA 等 1.0 版，優先功能四月底完成
+4.	Sim-to-Real：統一 lerobot 版本後再測；可行方案為 Physical AI Server Tool 直接錄製
+5.	Server 安裝包應包含 Inference 功能，目前先隱藏，未來開放
+6.	DeviceOn AI 助手先從 Server 端著手，整合 Log 分析與 CVE 比對
+行動事項
+行動項目	負責人	期限
+彙整 RoboticSuite PM 邀請函，安排 feedback meeting	Judy（由 Sephiroth 提供 Deck）	待確認後回覆
+統一 lerobot Library 版本後，重測 HDF5 → Dataset 轉換	TungYi	待確認後回覆
+Leader/Follower 自動識別方案整合至 Tool UI	Morgan	待確認後回覆
+OpenVINO Auto-Detect 整合至 RoboticSuite Inference	Morgan / Iris	待確認後回覆
+龍蝦步驟 1（讀檔存 DB）微調，達成一次性完成	Rafael	待確認後回覆
+DeviceOn 週報表功能完成，後續加入 CVE 比對	Scott	待確認後回覆
+龍蝦 Skill 流程說明投影片更新（助手優勢需更清楚）	Rafael	下週會議前
+Memory Leak 問題正式回報，請 HW 補包依據	Fabian	待確認後回覆
+Swisscon WSL 需求確認（到底要控制什麼）	Rafael	待確認後回覆
+BSP / Azure Token configuration 移入 pipeline	Fabian / Dylan	待確認後回覆
+⚠️ 負責人從逐字稿中出現的實際說話者選出
+________________________________________
+摘要與重點結論
+1.	RoboticSuite 命名定案：Server 端 = Simulation、Edge 端 = Inference，在 Robotic Branding 下定位清楚
+2.	Sim-to-Real 轉換問題仍未解決：HDF5 → Dataset 轉換存在落差，Codec 已排除，懷疑為 lerobot 版本差異，待統一後驗證
+3.	安裝包架構調整：同一包支援 Server / Edge / 單機，Inference 功能整合到 Server 端並先隱藏
+4.	RoboticSuite UI 大幅改善：刪除功能、Camera 動態設定、OpenVINO 支援、導覽流程等多項更新中
+5.	龍蝦 RAG 助手進度良好：查詢流程已通，步驟 1 存檔仍在微調，應用場景涵蓋 DeviceOn Log 分析
+6.	DeviceOn 智慧監控規劃完整：週報表 → CVE 比對 → 自動修復建議，核心價值在於「有記憶、越用越聰明」
+7.	OpenClaw 會議記錄 Skill 已可運作：本地 WhisperX + 雲端雙模式，實體會議可透過手機錄音 + Telegram 一鍵完成
+8.	歐洲客戶 Ponseca 進度正向：驗證滿意，準備進入 Production 環境，有望下單
+本會議記錄由 Jarvis 自動生成
